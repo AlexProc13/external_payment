@@ -6,6 +6,8 @@
         "path": "/images/payments/same_payment.png",
         "data": {
             "hideRange": true,
+            "minLimit": 100,
+            "maxLimit": 1000000,
             "allowCurrencies": ["USD"],
             "dependsOn": ["private_key"]
         }
