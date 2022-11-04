@@ -1,0 +1,13 @@
+[
+    {
+        "code": "SomePayment",
+        "class": "App\\Modules\\Finance\\Deposits\\SomePayment\\SomePayment",
+        "hook_type": 1,
+        "path": "/images/payments/same_payment.png",
+        "data": {
+            "hideRange": true,
+            "allowCurrencies": ["USD"],
+            "dependsOn": ["private_key"]
+        }
+    }
+]
