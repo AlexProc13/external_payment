@@ -46,5 +46,12 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+
+        $this->renderable(function (Throwable $e, $request) {
+            if ($request->is('api/*')) {
+                $response = apiFormatResponse(false, shortDataException($e));
+                return response()->json($response);
+            }
+        });
     }
 }
