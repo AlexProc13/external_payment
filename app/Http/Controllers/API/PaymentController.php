@@ -21,14 +21,7 @@ class PaymentController extends Controller
     {
         $payment = app()->make(Deposit::class);
         $data = $payment->make();
-        return apiFormatResponse(true, $data);
-        return [
-            'status' => true,
-            'type' => 'return',
-            'data' => [
-                'link' => 'http://localhost:8080/profile/payments'
-            ]
-        ];
+        return apiFormatResponse(true, $data, ['type' => $payment->getType()]);
     }
 
     public function makeDepositExtra(Request $request)
@@ -40,16 +33,9 @@ class PaymentController extends Controller
 
     public function webHookDeposit(Request $request)
     {
-        //validate
-        //make request and check
-        return [
-            'status' => true,
-            'type' => 1,// 1 -success 2 fail, 3 pending
-            'invoice_id' => 13,
-            'txid' => 'hash',
-            'user_id' => 11,
-            'amount' => 22222,
-        ];
+        $payment = app()->make(Deposit::class);
+        $data = $payment->webhook();
+        return apiFormatResponse(true, $data);
     }
 
     public function withdrawalMake(Request $request)

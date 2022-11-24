@@ -21,6 +21,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::get('get_payment_list', [PaymentController::class, 'getPaymentList'])->name('getPaymentList');
 Route::post('make_deposit', [PaymentController::class, 'makeDeposit'])->name('makeDeposit');
-Route::any('make_deposit_extra', [PaymentController::class, 'makeDepositExtra'])->name('makeDepositExtra');
+Route::post('make_deposit_extra', [PaymentController::class, 'makeDepositExtra'])->name('makeDepositExtra');
 Route::post('web_hook_deposit', [PaymentController::class, 'webHookDeposit'])->name('webHookDeposit');
 
