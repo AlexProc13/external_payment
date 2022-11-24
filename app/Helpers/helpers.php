@@ -36,4 +36,3 @@ function apiFormatResponse($status, $data, $properties = [])
 
     return $response;
 }
-
