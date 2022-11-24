@@ -1,0 +1,23 @@
+{
+    "preset": "laravel",
+    "disabled": [
+        "NoCompact",
+        "NoInlineVarDocs",
+        "OneLineBetweenClassVisibilityChanges",
+        "PureRestControllers",
+        "ApplyMiddlewareInRoutes",
+        "ImportFacades",
+        "SpaceAfterSoleNotOperator",
+        "NoParensEmptyInstantiations",
+        "NoDump",
+        "ModelMethodOrder",
+        "ConcatenationNoSpacing",
+        "AlphabeticalImports",
+        "NoDatesPropertyOnModels"
+    ],
+    "excluded": [
+        "tests/",
+        "app/Helpers/",
+        "app/Http/Controllers/Dev/"
+    ]
+}
