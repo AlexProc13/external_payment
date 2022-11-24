@@ -11,12 +11,13 @@ jobs:
 
     env:
       php-version: "8.1"
-      key: cache-v5 # can be any string, change to clear the extension cache.
+      key: cache-v3 # can be any string, change to clear the extension cache.
 
     services:
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
+
       - name: Setup cache environment
         id: cache-env
         uses: shivammathur/cache-extensions@v1
@@ -25,7 +26,7 @@ jobs:
           key: ${{ env.key }}
 
       - name: Cache extensions
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: ${{ steps.cache-env.outputs.dir }}
           key: ${{ steps.cache-env.outputs.key }}
@@ -49,7 +50,7 @@ jobs:
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
@@ -74,7 +75,7 @@ jobs:
         run: chmod -R 777 storage bootstrap/cache
 
       - name: Install NodeJS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: 10
           cache: 'npm'
