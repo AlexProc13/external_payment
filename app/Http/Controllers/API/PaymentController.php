@@ -12,9 +12,7 @@ class PaymentController extends Controller
     public function getPaymentList(Request $request)
     {
         $providers = $this->getProviders($request->type);
-        return [
-            'providers' => $providers,
-        ];
+        return ['providers' => $providers];
     }
 
     public function makeDeposit(Request $request)
