@@ -11,7 +11,7 @@ jobs:
 
     env:
       php-version: "8.1"
-      key: cache-v3 # can be any string, change to clear the extension cache.
+      key: cache-v4 # can be any string, change to clear the extension cache.
 
     services:
 
