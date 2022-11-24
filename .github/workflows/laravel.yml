@@ -17,7 +17,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
       - name: Setup cache environment
         id: cache-env
         uses: shivammathur/cache-extensions@v1
