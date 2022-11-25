@@ -115,13 +115,16 @@ class NowPayment extends Deposit
     protected function checkSignature(array $data): bool
     {
         $params = $this->request['params'];
+        $headers = $this->request['headers'];
+        $nowPaymentsSignature = isset($headers['x-nowpayments-sig']) ? $headers['x-nowpayments-sig'][0] : null;
+
         ksort($data);
         $signature = Signature::makeBySha512(json_encode($data), $params['ipn']);
 
-        if ($this->request->header('x-nowpayments-sig') != $signature) {
+        if ($nowPaymentsSignature != $signature) {
             Log::error('NowPayment deposit failed.', [
                 'signature' => $signature,
-                'x-nowpayments-sig' => $this->request->header('x-nowpayments-sig'),
+                'x-nowpayments-sig' => $nowPaymentsSignature,
             ]);
 
             return false;
