@@ -114,6 +114,7 @@ class NowPayment extends Deposit
 
     protected function checkSignature(array $data): bool
     {
+        Log::emergency(json_encode($data));
         $params = $this->request['params'];
         $headers = $this->request['headers'];
         $nowPaymentsSignature = isset($headers['x-nowpayments-sig']) ? $headers['x-nowpayments-sig'][0] : null;
