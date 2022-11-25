@@ -31,16 +31,30 @@ abstract class Deposit
         return $this->type;
     }
 
-    public function webHookResponse($text, $status, $amount, $txid, $invoiceId)
+    public function webHookResponse($text, $status, $amount, $txid = null, $invoiceId = null, $userId = null)
     {
         $params = $this->request['params'];
-        return [
+        $data =  [
             'payment_system_id' => $params['id'],
             'return' => $text,
             'status' => $status,
             'amount' => $amount,
+
             'txid' => $txid,
             'invoice_id' => $invoiceId,
         ];
+
+        if (isset($txid)) {
+            $data['txid'] = $txid;
+        }
+
+        if (isset($invoiceId)) {
+            $data['invoice_id'] = $invoiceId;
+        }
+
+        if (isset($userId)) {
+            $data['user_id'] = $userId;
+        }
+        return $data;
     }
 }
