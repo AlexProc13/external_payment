@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Modules\Finance\Deposits\Deposit;
-use Storage;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
+use App\Modules\Finance\Deposits\Deposit;
 
 class PaymentController extends Controller
 {
