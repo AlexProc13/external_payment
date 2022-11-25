@@ -81,7 +81,7 @@ jobs:
           node-version: 10
           cache: 'npm'
       - run: npm ci
-      - run: npm run prod
+      - run: npm run build
 
       - name: Execute tests (Unit and Feature tests) via PHPUnit
         run: phpunit
