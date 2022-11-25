@@ -72,11 +72,13 @@ class NowPayment extends Deposit
 
         $data = json_decode($response->getBody()->getContents(), true);
 
+        //TO DO CREATE STANDARD
         return [
             'address' => $data['pay_address'],
             'amount' => $data['pay_amount'],
             'currency' => $data['pay_currency'],
-            'action' => 'stay',
+            'txid' => $data['payment_id'],//have to be
+            'action' => 'stay',//have to be
         ];
     }
 
