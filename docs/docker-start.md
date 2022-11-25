@@ -38,7 +38,7 @@ docker-compose run --rm php php artisan migrate
 sudo chgrp -R www-data storage bootstrap/cache
 sudo chmod -R ug+rwx storage bootstrap/cache
 ```
-- Run and Go to ```http://localhost:5555/register```
+- Run and Go to ```http://localhost:5555```
 ```bash
 docker-compose up
 ```
