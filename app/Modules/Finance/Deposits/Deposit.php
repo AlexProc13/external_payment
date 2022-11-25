@@ -33,6 +33,7 @@ abstract class Deposit
 
     public function webHookResponse($text, $status, $amount, $txid, $invoiceId)
     {
+        dd($this->request);
         $user = $this->request['user'];
         $params = $this->request['params'];
         return [
