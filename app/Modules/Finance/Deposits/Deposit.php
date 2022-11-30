@@ -57,4 +57,14 @@ abstract class Deposit
         }
         return $data;
     }
+
+    public function makeResponse($action, $uuid, $data)
+    {
+        $default = [
+            'txid' => $uuid,
+            'action' => $action
+        ];
+
+        return array_merge($default, $data);
+    }
 }
