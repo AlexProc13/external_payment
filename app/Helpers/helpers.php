@@ -36,3 +36,18 @@ function apiFormatResponse($status, $data, $properties = [])
 
     return $response;
 }
+
+function isTimeOutException(Throwable $exception, $timeOut)
+{
+    if (!($exception instanceof GuzzleHttp\Exception\GuzzleException)) {
+        return false;
+    }
+
+    $context = $exception->getHandlerContext();
+    if ($timeOut > $context['total_time']) {
+        return false;
+    }
+
+    return true;
+}
+

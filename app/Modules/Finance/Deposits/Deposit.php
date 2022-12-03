@@ -17,24 +17,19 @@ abstract class Deposit
         $this->request = $request;
     }
 
+    abstract public function make();
+
+    abstract public function webHook();
+
     public function getExtraData()
     {
         return [];
     }
 
-    abstract public function make();
-
-    abstract public function webHook();
-
-    public function getType()
-    {
-        return $this->type;
-    }
-
     public function webHookResponse($text, $status, $amount, $txid = null, $invoiceId = null, $userId = null)
     {
         $params = $this->request['params'];
-        $data =  [
+        $data = [
             'payment_system_id' => $params['id'],
             'return' => $text,
             'status' => $status,
@@ -58,7 +53,14 @@ abstract class Deposit
         return $data;
     }
 
-    public function makeResponse($action, $uuid, $data)
+    /**
+     *
+     * @param $action
+     * @param $uuid
+     * @param $data
+     * @return array
+     */
+    public function makeResponse(string $action, string|null $uuid, array $data)
     {
         $default = [
             'txid' => $uuid,
