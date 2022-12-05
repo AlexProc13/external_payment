@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Modules\Finance\Deposits\Deposit;
+use App\Modules\Finance\Withdrawal\Withdrawal;
 
 class PaymentController extends Controller
 {
@@ -15,18 +16,18 @@ class PaymentController extends Controller
         return ['providers' => $providers];
     }
 
-    public function makeDeposit(Request $request)
-    {
-        $payment = app()->make(Deposit::class);
-        $data = $payment->make();
-        return apiFormatResponse(true, $data, ['type' => $payment->getType()]);
-    }
-
     public function makeDepositExtra(Request $request)
     {
         $payment = app()->make(Deposit::class);
         $data = $payment->getExtraData();
         return apiFormatResponse(true, $data);
+    }
+
+    public function makeDeposit(Request $request)
+    {
+        $payment = app()->make(Deposit::class);
+        $data = $payment->make();
+        return apiFormatResponse(true, $data, ['type' => $payment->getType()]);
     }
 
     public function webHookDeposit(Request $request)
@@ -36,25 +37,25 @@ class PaymentController extends Controller
         return apiFormatResponse(true, $data);
     }
 
-    public function withdrawalMake(Request $request)
+    public function makeWithdrawalExtra(Request $request)//Withdrawal
     {
-        //validate
-        //make
-        return [];
+        $payment = app()->make(Withdrawal::class);
+        $data = $payment->getExtraData();
+        return apiFormatResponse(true, $data);
     }
 
-    public function withdrawalSendMoney(Request $request)
+    public function makeWithdrawal(Request $request)
     {
-        //validate
-        //make
-        return [];
+        $payment = app()->make(Withdrawal::class);
+        $data = $payment->webhook();
+        return apiFormatResponse(true, $data);
     }
 
-    public function withdrawalWebHook(Request $request)
+    public function webHookWithdrawal(Request $request)
     {
-        //validate
-        //make
-        return [];
+        $payment = app()->make(Withdrawal::class);
+        $data = $payment->webhook();
+        return apiFormatResponse(true, $data);
     }
 
     protected function getProviders($path)
