@@ -1,15 +1,14 @@
 [
     {
-        "code": "SomePayment",
-        "class": "App\\Modules\\Finance\\Deposits\\SomePayment\\SomePayment",
+        "code": "NowPayment",
+        "class": "App\\Modules\\Finance\\Withdrawal\\NowPayment",
         "type": "common",
-        "hook_type": 1,
+        "hook_type": 2,
+        "payment": "NowPayment",
         "data": {
             "hideRange": true,
-            "minLimit": 100,
-            "maxLimit": 1000000,
-            "allowCurrencies": ["USD"],
-            "dependsOn": ["private_key"]
-        }
+            "allowCurrencies": ["USD"]
+        },
+        "dependsOn": ["email", "password", "api", "ipn"]
     }
 ]
