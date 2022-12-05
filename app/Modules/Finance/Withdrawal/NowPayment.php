@@ -197,6 +197,6 @@ class NowPayment extends Withdrawal
 
     protected function isCryptoCurrency($currency)
     {
-        return in_array($currency, config('finance.cryptoCurrencies'));
+        return in_array($currency, self::CRYPTO_CURRENCIES);
     }
 }
