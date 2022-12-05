@@ -45,6 +45,11 @@ abstract class Withdrawal
         return [];
     }
 
+    public function getType()
+    {
+        return $this->type;
+    }
+
     public function webHookResponse($text, $status, $amount, $txid = null, $invoiceId = null, $userId = null)
     {
         $params = $this->request['params'];

@@ -47,8 +47,9 @@ class PaymentController extends Controller
     public function makeWithdrawal(Request $request)
     {
         $payment = app()->make(Withdrawal::class);
-        $data = $payment->webhook();
-        return apiFormatResponse(true, $data);
+        $data = $payment->make();
+        return $data;
+        return apiFormatResponse(true, $data, ['type' => $payment->getType()]);
     }
 
     public function webHookWithdrawal(Request $request)

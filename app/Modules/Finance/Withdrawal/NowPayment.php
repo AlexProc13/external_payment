@@ -23,7 +23,6 @@ class NowPayment extends Withdrawal
     protected const PAYMENT_URL = "https://api-sandbox.nowpayments.io/v1/payment";
     protected const ACTIVE_CURRENCY_URL = "https://api-sandbox.nowpayments.io/v1/merchant/coins";
 
-
     protected const STATUSES = [self::FINISH_STATUS, self::FAILED_STATUS, self::REFUNDED_STATUS, self::EXPIRED_STATUS];
     protected const CRYPTO_CURRENCIES = [
         'BTC', 'USDT.ERC20', 'USDT.BEP20', 'USDT.TRC20', 'CAKE', 'ETH', 'BNBMAINNET',
@@ -82,10 +81,9 @@ class NowPayment extends Withdrawal
                 $data['fiat_currency'] = $user['currency'];
                 $data['fiat_amount'] = $request['amount'];
             }
-
-
             $callbackUrl = $this->request['callback'];
             $token = $this->getToken();
+            return [22];
             $guzzle = app()->make(Client::class);
             $response = $guzzle->request('POST', self::PAYMENT_URL, [
                 'headers' => [
@@ -100,13 +98,14 @@ class NowPayment extends Withdrawal
             ]);
 
         } catch (Throwable $exception) {
+            return [$exception->getMessage()];
             Log::info('NowPayment', ['class' => get_class($this), 'error_coin' => dataException($exception)]);
             if (isTimeOutException($exception, self::TIME_OUT)) {
                 //can be success
                 return $this->makeResponse(self::MAKE_STATUSES['unknown'], null, []);
             }
         }
-
+        return [111];
         //second action
         try {
             $data = json_decode($response->getBody()->getContents(), true);
@@ -121,8 +120,9 @@ class NowPayment extends Withdrawal
 
     public function webHook()
     {
-        Log::info('NowPayment withdrawal proceed', $this->request->all());
         $request = $this->request['request'];
+        Log::info('NowPayment withdrawal proceed', $request);
+
         $validator = Validator::make($request, [
             'id' => 'required',
             'batch_withdrawal_id' => 'required',
@@ -181,9 +181,12 @@ class NowPayment extends Withdrawal
                 'email' => $params['email'],
                 'password' => $params['password'],
             ],
-            'timeout' => $params['timeout'],
+            'timeout' => self::TIME_OUT,
         ]);
-
+        dd([
+            'email' => $params['email'],
+            'password' => $params['password'],
+        ]);
         if ($response->getStatusCode() != 200) {
             Log::error('NowPayment withdraw failed.', $response->getBody()->getContents() ?? []);
 
@@ -191,7 +194,7 @@ class NowPayment extends Withdrawal
         }
 
         $responseBody = json_decode($response->getBody()->getContents(), true);
-
+dd($responseBody);
         return $responseBody['token'];
     }
 
