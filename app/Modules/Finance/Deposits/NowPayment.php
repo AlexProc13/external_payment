@@ -104,8 +104,8 @@ class NowPayment extends Deposit
             throw new Exception('wrong_signature');
         }
 
-        if (!in_array($request['payment_status'], [self::FINISH_STATUS, self::PARTIALLY_STATUS])) {
-            throw new Exception('some_is_wrong');
+        if (!in_array($request['payment_status'], [self::FINISH_STATUS])) {
+            return $this->webHookResponse('fail', self::SYSTEM_STATUSES['fail'], $request['price_amount'], $request['payment_id'], $request['order_id']);
         }
 
         return $this->webHookResponse('successfully', self::SYSTEM_STATUSES['success'], $request['price_amount'], $request['payment_id'], $request['order_id']);
