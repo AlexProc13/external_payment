@@ -117,6 +117,7 @@ class NowPayment extends Withdrawal
 
     public function webHook()
     {
+        //todo not tested
         $request = $this->request['request'];
         Log::info('NowPayment withdrawal proceed', $request);
 
@@ -141,7 +142,7 @@ class NowPayment extends Withdrawal
             throw new Exception('wrong_signature');
         }
 
-        if (strtolower($this->request['status']) != self::FINISH_STATUS) {
+        if (strtolower($request['status']) != self::FINISH_STATUS) {
             return $this->webHookResponse('fail', self::SYSTEM_STATUSES['fail'], null, $request['id'], null);
         }
 

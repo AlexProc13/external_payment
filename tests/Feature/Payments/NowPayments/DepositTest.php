@@ -189,6 +189,7 @@ class DepositTest extends TestCase
             ->assertJsonPath('data.txid', $paymentId)
             ->assertJsonPath('data.amount', $input['request']['price_amount'])
             ->assertJsonPath('data.return', 'successfully')
+            ->assertJsonPath('data.status', 'success')
             ->assertJsonPath('data.invoice_id', $invoiceId)
             ->assertJsonStructure([
                 'status',
@@ -237,7 +238,7 @@ class DepositTest extends TestCase
             ->assertJsonPath('data.txid', $paymentId)
             ->assertJsonPath('data.amount', $input['request']['price_amount'])
             ->assertJsonPath('data.return', 'fail')
-            ->assertJsonPath('data.return', 'fail')
+            ->assertJsonPath('data.status', 'fail')
             ->assertJsonPath('data.invoice_id', $invoiceId)
             ->assertJsonStructure([
                 'status',

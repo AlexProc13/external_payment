@@ -128,7 +128,6 @@ class WithdrawalTest extends TestCase
                     'output',
                 ]
             ]);
-        dd(1);
     }
 
     public function testMakeFail()
@@ -241,14 +240,15 @@ class WithdrawalTest extends TestCase
             'id' => $this->faker->numberBetween(1, 200),
             'currency' => $userCurrency,
         ];
+        $txid = $this->faker->numberBetween(100, 200);
         $input['request'] = [
-            'payment_id' => $paymentId,
-            'order_id' => $invoiceId,
-            'payment_status' => 'finished',
-            'price_amount' => $this->faker->numberBetween(100, 200),
-            'price_currency' => $userCurrency,
-            'pay_amount' => $this->faker->numberBetween(1, 5),
-            'pay_currency' => $needPayIn,
+            'id' => $txid,
+            'address' => $this->faker->uuid,
+            'amount' => $this->faker->numberBetween(100, 200),
+            'status' => 'FINISHED',
+            'batch_withdrawal_id' => $this->faker->numberBetween(100, 200),
+            'currency' => $needPayIn,
+            'ipn_callback_url' => $this->faker->url,
         ];
         $input['callback'] = $this->faker->url;
         $input['payment'] = [
@@ -263,15 +263,109 @@ class WithdrawalTest extends TestCase
         ];
 
         $response = $this->json(Request::METHOD_POST, route('webHookWithdrawal'), $input);
-        dd($response);
         $response
             ->assertStatus(Response::HTTP_OK)
             ->assertJsonPath('status', true)
             ->assertJsonPath('data.payment_system_id', $this->input['params']['id'])
-            ->assertJsonPath('data.txid', $paymentId)
-            ->assertJsonPath('data.amount', $input['request']['price_amount'])
+            ->assertJsonPath('data.txid', $txid)
+            ->assertJsonPath('data.amount', null)
             ->assertJsonPath('data.return', 'successfully')
-            ->assertJsonPath('data.invoice_id', $invoiceId)
+            ->assertJsonPath('data.status', 'success')
+            ->assertJsonPath('data.invoice_id', null)
+            ->assertJsonStructure([
+                'status',
+                'data',
+            ]);
+    }
+
+    public function testWebHookFail()
+    {
+        $needPayIn = 'TRX';
+        $userCurrency = 'USD';
+        $paymentId = $this->faker->numberBetween(1, 200);
+        $invoiceId = $this->faker->numberBetween(1, 200);
+
+        $input = $this->input;
+        $input['user'] = [
+            'id' => $this->faker->numberBetween(1, 200),
+            'currency' => $userCurrency,
+        ];
+        $txid = $this->faker->numberBetween(100, 200);
+        $input['request'] = [
+            'id' => $txid,
+            'address' => $this->faker->uuid,
+            'amount' => $this->faker->numberBetween(100, 200),
+            'status' => 'FAILED',
+            'batch_withdrawal_id' => $this->faker->numberBetween(100, 200),
+            'currency' => $needPayIn,
+            'ipn_callback_url' => $this->faker->url,
+        ];
+        $input['callback'] = $this->faker->url;
+        $input['payment'] = [
+            'invoice_id' => $invoiceId,
+        ];
+
+        $request = $input['request'];
+        ksort($request);
+        $signature = Signature::makeBySha512(json_encode($request), $input['params']['ipn']);
+        $input['headers'] = [
+            'x-nowpayments-sig' => [$signature],
+        ];
+
+        $response = $this->json(Request::METHOD_POST, route('webHookWithdrawal'), $input);
+        $response
+            ->assertStatus(Response::HTTP_OK)
+            ->assertJsonPath('status', true)
+            ->assertJsonPath('data.payment_system_id', $this->input['params']['id'])
+            ->assertJsonPath('data.txid', $txid)
+            ->assertJsonPath('data.amount', null)
+            ->assertJsonPath('data.return', 'fail')
+            ->assertJsonPath('data.status', 'fail')
+            ->assertJsonPath('data.invoice_id', null)
+            ->assertJsonStructure([
+                'status',
+                'data',
+            ]);
+    }
+
+    public function testWebHookError()
+    {
+        $needPayIn = 'TRX';
+        $userCurrency = 'USD';
+        $paymentId = $this->faker->numberBetween(1, 200);
+        $invoiceId = $this->faker->numberBetween(1, 200);
+
+        $input = $this->input;
+        $input['user'] = [
+            'id' => $this->faker->numberBetween(1, 200),
+            'currency' => $userCurrency,
+        ];
+        $txid = $this->faker->numberBetween(100, 200);
+        $input['request'] = [
+            'id' => $txid,
+            'address' => $this->faker->uuid,
+            'amount' => $this->faker->numberBetween(100, 200),
+            'status' => 'WAITING',
+            'batch_withdrawal_id' => $this->faker->numberBetween(100, 200),
+            'currency' => $needPayIn,
+            'ipn_callback_url' => $this->faker->url,
+        ];
+        $input['callback'] = $this->faker->url;
+        $input['payment'] = [
+            'invoice_id' => $invoiceId,
+        ];
+
+        $request = $input['request'];
+        ksort($request);
+        $signature = Signature::makeBySha512(json_encode($request), $input['params']['ipn']);
+        $input['headers'] = [
+            'x-nowpayments-sig' => [$signature],
+        ];
+
+        $response = $this->json(Request::METHOD_POST, route('webHookWithdrawal'), $input);
+        $response
+            ->assertStatus(Response::HTTP_OK)
+            ->assertJsonPath('status', false)
             ->assertJsonStructure([
                 'status',
                 'data',
