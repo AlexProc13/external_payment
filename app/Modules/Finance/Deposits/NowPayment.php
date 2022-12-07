@@ -60,7 +60,6 @@ class NowPayment extends Deposit
                 'pay_currency' => $request['currency'],
                 'ipn_callback_url' => $callbackUrl,
                 'order_id' => $this->request['payment']['invoice_id'],
-                'case' => 'failed',
             ],
             'timeout' => self::TIME_OUT,
         ]);
