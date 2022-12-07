@@ -46,7 +46,7 @@ class WithdrawlTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-dd(1);
+        dd(1);
         $company = factory(Company::class)->create();
         $this->platformSetUp($company);
         $sports = factory(Sport::class, 5)->create();

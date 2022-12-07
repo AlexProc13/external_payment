@@ -93,7 +93,6 @@ class NowPayment extends Withdrawal
                 ],
                 'timeout' => self::TIME_OUT,
             ]);
-
         } catch (Throwable $exception) {
             Log::info('NowPayment', ['class' => get_class($this), 'error_coin' => dataException($exception)]);
             if (isTimeOutException($exception, self::TIME_OUT)) {
@@ -106,7 +105,6 @@ class NowPayment extends Withdrawal
         try {
             $data = json_decode($response->getBody()->getContents(), true);
             $uuid = $data['id'];
-
         } catch (Throwable $exception) {
             return $this->makeResponse(self::MAKE_STATUSES['fail'], null, $data ?? []);
         }
