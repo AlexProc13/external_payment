@@ -6,8 +6,7 @@
         "hook_type": 2,
         "payment": "NowPayment",
         "data": {
-            "hideRange": true,
-            "allowCurrencies": ["USD"]
+            "hideRange": true
         },
         "dependsOn": ["email", "password", "api", "ipn"]
     }
