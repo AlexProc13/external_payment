@@ -230,7 +230,7 @@ class WithdrawalTest extends TestCase
     }
 
     public function testWebHook()
-    {dd(1);
+    {
         $needPayIn = 'TRX';
         $userCurrency = 'USD';
         $paymentId = $this->faker->numberBetween(1, 200);
@@ -262,7 +262,8 @@ class WithdrawalTest extends TestCase
             'x-nowpayments-sig' => [$signature],
         ];
 
-        $response = $this->json(Request::METHOD_POST, route('webHookDeposit'), $input);
+        $response = $this->json(Request::METHOD_POST, route('webHookWithdrawal'), $input);
+        dd($response);
         $response
             ->assertStatus(Response::HTTP_OK)
             ->assertJsonPath('status', true)
