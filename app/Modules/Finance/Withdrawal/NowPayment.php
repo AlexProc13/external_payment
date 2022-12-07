@@ -4,10 +4,8 @@ namespace App\Modules\Finance\Withdrawal;
 
 use Exception;
 use Throwable;
-use App\Models\User;
 use GuzzleHttp\Client;
 use App\Helpers\Signature;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -83,7 +81,6 @@ class NowPayment extends Withdrawal
             }
             $callbackUrl = $this->request['callback'];
             $token = $this->getToken();
-            return [22];
             $guzzle = app()->make(Client::class);
             $response = $guzzle->request('POST', self::PAYMENT_URL, [
                 'headers' => [
@@ -98,14 +95,13 @@ class NowPayment extends Withdrawal
             ]);
 
         } catch (Throwable $exception) {
-            return [$exception->getMessage()];
             Log::info('NowPayment', ['class' => get_class($this), 'error_coin' => dataException($exception)]);
             if (isTimeOutException($exception, self::TIME_OUT)) {
                 //can be success
                 return $this->makeResponse(self::MAKE_STATUSES['unknown'], null, []);
             }
         }
-        return [111];
+
         //second action
         try {
             $data = json_decode($response->getBody()->getContents(), true);
@@ -145,10 +141,10 @@ class NowPayment extends Withdrawal
         }
 
         if (strtolower($this->request['status']) != self::FINISH_STATUS) {
-            throw new Exception('wrong_status');
+            return $this->webHookResponse('fail', self::SYSTEM_STATUSES['fail'], null, $request['id'], null);
         }
 
-        return $this->webHookResponse('successfully', self::SYSTEM_STATUSES['success'], $request['amount'], $request['batch_withdrawal_id'], $request['id']);
+        return $this->webHookResponse('successfully', self::SYSTEM_STATUSES['success'], null, $request['id'], null);
     }
 
     protected function checkSignature(array $data): bool
@@ -183,10 +179,7 @@ class NowPayment extends Withdrawal
             ],
             'timeout' => self::TIME_OUT,
         ]);
-        dd([
-            'email' => $params['email'],
-            'password' => $params['password'],
-        ]);
+
         if ($response->getStatusCode() != 200) {
             Log::error('NowPayment withdraw failed.', $response->getBody()->getContents() ?? []);
 
@@ -194,7 +187,6 @@ class NowPayment extends Withdrawal
         }
 
         $responseBody = json_decode($response->getBody()->getContents(), true);
-dd($responseBody);
         return $responseBody['token'];
     }
 
