@@ -97,6 +97,7 @@ class NowPayment extends Deposit
             throw new Exception('required_parameter_is_not_included');
         }
 
+        //in other status - need to wait
         if (!in_array($request['payment_status'], self::STATUSES)) {
             throw new Exception('wrong_status');
         }
