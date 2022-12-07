@@ -85,7 +85,7 @@ class NowPayment extends Deposit
         $request = $this->request['request'];
         $validator = Validator::make($request, [
             'payment_id' => 'required',
-            'order_id' => 'required|string',
+            'order_id' => 'required',
             'payment_status' => 'required|string',
             'price_amount' => 'required|numeric|min:0|not_in:0',
             'price_currency' => 'required|string',
