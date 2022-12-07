@@ -79,6 +79,7 @@ class NowPayment extends Withdrawal
                 $data['fiat_currency'] = $user['currency'];
                 $data['fiat_amount'] = $request['amount'];
             }
+            $logs = ['input' => $data];
             $callbackUrl = $this->request['callback'];
             $token = $this->getToken();
             $guzzle = app()->make(Client::class);
@@ -97,19 +98,21 @@ class NowPayment extends Withdrawal
             Log::info('NowPayment', ['class' => get_class($this), 'error_coin' => dataException($exception)]);
             if (isTimeOutException($exception, self::TIME_OUT)) {
                 //can be success
-                return $this->makeResponse(self::MAKE_STATUSES['unknown'], null, []);
+                return $this->makeResponse(self::MAKE_STATUSES['unknown'], null, $logs);
             }
         }
 
         //second action
         try {
-            $data = json_decode($response->getBody()->getContents(), true);
-            $uuid = $data['id'];
+            $dataResponse = json_decode($response->getBody()->getContents(), true);
+            $uuid = $dataResponse['id'];
+            $logs['output'] = $dataResponse;
         } catch (Throwable $exception) {
-            return $this->makeResponse(self::MAKE_STATUSES['fail'], null, $data ?? []);
+            $logs['output'] = $dataResponse ?? [];
+            return $this->makeResponse(self::MAKE_STATUSES['fail'], null, $logs);
         }
 
-        return $this->makeResponse(self::MAKE_STATUSES['done'], $uuid, $data);
+        return $this->makeResponse(self::MAKE_STATUSES['done'], $uuid, $logs);
     }
 
     public function webHook()

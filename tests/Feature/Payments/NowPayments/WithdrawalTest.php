@@ -11,12 +11,14 @@ use Illuminate\Http\Response;
 use GuzzleHttp\Handler\MockHandler;
 use Illuminate\Foundation\Testing\WithFaker;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
+use GuzzleHttp\Psr7\Request as GuzzleRequest;
+use GuzzleHttp\Exception\RequestException;
 
-class DepositTest extends TestCase
+class WithdrawalTest extends TestCase
 {
     use WithFaker;
 
-    protected $class = \App\Modules\Finance\Deposits\NowPayment::class;
+    protected $class = \App\Modules\Finance\Withdrawal\NowPayment::class;
 
     protected array $headers = [];
 
@@ -28,9 +30,15 @@ class DepositTest extends TestCase
                 'id' => $this->faker->numberBetween(1, 200),
                 'ipn' => $this->faker->uuid,
                 'api' => $this->faker->uuid,
+                'email' => $this->faker->email,
+                'password' => $this->faker->password,
                 'data' => [
                     'originClass' => $this->class,
                 ]
+            ],
+            'user' => [
+                'id' => $this->faker->numberBetween(1, 200),
+                'currency' => 'USD',
             ]
         ];
     }
@@ -47,20 +55,21 @@ class DepositTest extends TestCase
         $handler = HandlerStack::create($mock);
         $client = new Client(['handler' => $handler]);
         $this->app->instance(Client::class, $client);
-        $response = $this->json(Request::METHOD_POST, route('makeDepositExtra'), $this->input, $this->headers);
+        $response = $this->json(Request::METHOD_POST, route('makeWithdrawalExtra'), $this->input, $this->headers);
         $response
             ->assertStatus(Response::HTTP_OK)
+            ->assertJsonPath('status', true)
             ->assertJsonStructure([
                 'status',
                 'data' => [
-                    'currencies'
+                    'currencies', 'is_crypto',
                 ],
             ]);
     }
 
     public function testGetExtraDataError()
     {
-        $response = $this->json(Request::METHOD_POST, route('makeDepositExtra'), [], $this->headers);
+        $response = $this->json(Request::METHOD_POST, route('makeWithdrawalExtra'), [], $this->headers);
         $response
             ->assertStatus(Response::HTTP_OK)
             ->assertJsonPath('status', false)
@@ -82,6 +91,7 @@ class DepositTest extends TestCase
             'currency' => $userCurrency,
         ];
         $input['request'] = [
+            'address' => $this->faker->uuid,
             'amount' => $this->faker->numberBetween(100, 200),
             'currency' => $needPayIn,
             'return_url' => $this->faker->url,
@@ -90,36 +100,38 @@ class DepositTest extends TestCase
         $input['payment'] = [
             'invoice_id' => $invoiceId,
         ];
-
+        $uuid = $this->faker->numberBetween(100, 200);
         $expectedResult = [
-            'payment_id' => $this->faker->numberBetween(100, 200),
-            'invoice_id' => $invoiceId,
-            'status' => 'waiting',
-            'pay_address' => $this->faker->uuid,
-            'pay_amount' => $this->faker->numberBetween(100, 200),
-            'pay_currency' => $needPayIn,
+            'id' => $uuid,
         ];
-        $mock = new MockHandler([new GuzzleResponse(201, [], json_encode($expectedResult))]);
+        $mock = new MockHandler([
+            new GuzzleResponse(200, [], json_encode(['token' => $this->faker->uuid])),
+            new GuzzleResponse(200, [], json_encode($expectedResult))
+        ]);
         $handler = HandlerStack::create($mock);
         $client = new Client(['handler' => $handler]);
         $this->app->instance(Client::class, $client);
 
-        $response = $this->json(Request::METHOD_POST, route('makeDeposit'), $input, $this->headers);
+        $response = $this->json(Request::METHOD_POST, route('makeWithdrawal'), $input, $this->headers);
+
         $response
             ->assertStatus(Response::HTTP_OK)
+            ->assertJsonPath('status', true)
+            ->assertJsonPath('data.txid', (string)$uuid)
+            ->assertJsonPath('action', 'done')
             ->assertJsonStructure([
                 'status',
                 'data' => [
-                    'currency',
-                    'amount',
-                    'address',
-                    'action',
                     'txid',
+                    'action',
+                    'input',
+                    'output',
                 ]
             ]);
+        dd(1);
     }
 
-    public function testMakeError()
+    public function testMakeFail()
     {
         $needPayIn = 'TRX';
         $userCurrency = 'USD';
@@ -131,25 +143,94 @@ class DepositTest extends TestCase
             'currency' => $userCurrency,
         ];
         $input['request'] = [
-            //wrong input
+            'address' => $this->faker->uuid,
+            'amount' => $this->faker->numberBetween(100, 200),
+            'currency' => $needPayIn,
+            'return_url' => $this->faker->url,
+        ];
+        $input['callback'] = $this->faker->url;
+        $input['payment'] = [
+            'invoice_id' => $invoiceId,
+        ];
+        $uuid = $this->faker->numberBetween(100, 200);
+        $expectedResult = [
+            'error' => 1,
+        ];
+        $mock = new MockHandler([
+            new GuzzleResponse(200, [], json_encode(['token' => $this->faker->uuid])),
+            new GuzzleResponse(200, [], json_encode($expectedResult))
+        ]);
+        $handler = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handler]);
+        $this->app->instance(Client::class, $client);
+
+        $response = $this->json(Request::METHOD_POST, route('makeWithdrawal'), $input, $this->headers);
+
+        $response
+            ->assertStatus(Response::HTTP_OK)
+            ->assertJsonPath('status', true)
+            ->assertJsonPath('data.txid', null)
+            ->assertJsonPath('action', 'fail')
+            ->assertJsonStructure([
+                'status',
+                'data' => [
+                    'txid',
+                    'action',
+                    'input',
+                    'output',
+                ]
+            ]);
+    }
+
+    public function testMakeUnknown()
+    {
+        $needPayIn = 'TRX';
+        $userCurrency = 'USD';
+
+        $invoiceId = $this->faker->numberBetween(1, 200);
+        $input = $this->input;
+        $input['user'] = [
+            'id' => $this->faker->numberBetween(1, 200),
+            'currency' => $userCurrency,
+        ];
+        $input['request'] = [
+            'address' => $this->faker->uuid,
+            'amount' => $this->faker->numberBetween(100, 200),
+            'currency' => $needPayIn,
+            'return_url' => $this->faker->url,
         ];
         $input['callback'] = $this->faker->url;
         $input['payment'] = [
             'invoice_id' => $invoiceId,
         ];
 
-        $response = $this->json(Request::METHOD_POST, route('makeDeposit'), $input, $this->headers);
+        $mock = new MockHandler([
+            new GuzzleResponse(200, [], json_encode(['token' => $this->faker->uuid])),
+            new RequestException('Error', new GuzzleRequest('POST', 'fail'), null, null, ['total_time' => 100])
+        ]);
+        $handler = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handler]);
+        $this->app->instance(Client::class, $client);
+
+        $response = $this->json(Request::METHOD_POST, route('makeWithdrawal'), $input, $this->headers);
+
         $response
             ->assertStatus(Response::HTTP_OK)
-            ->assertJsonPath('status', false)
+            ->assertJsonPath('status', true)
+            ->assertJsonPath('data.txid', null)
+            ->assertJsonPath('action', 'unknown')
             ->assertJsonStructure([
                 'status',
-                'data',
+                'data' => [
+                    'txid',
+                    'action',
+                    'input',
+                ]
             ]);
     }
 
     public function testWebHook()
-    {
+    {dd(1);
         $needPayIn = 'TRX';
         $userCurrency = 'USD';
         $paymentId = $this->faker->numberBetween(1, 200);
@@ -190,98 +271,6 @@ class DepositTest extends TestCase
             ->assertJsonPath('data.amount', $input['request']['price_amount'])
             ->assertJsonPath('data.return', 'successfully')
             ->assertJsonPath('data.invoice_id', $invoiceId)
-            ->assertJsonStructure([
-                'status',
-                'data',
-            ]);
-    }
-
-    public function testWebHookFail()
-    {
-        $needPayIn = 'TRX';
-        $userCurrency = 'USD';
-        $paymentId = $this->faker->numberBetween(1, 200);
-        $invoiceId = $this->faker->numberBetween(1, 200);
-
-        $input = $this->input;
-        $input['user'] = [
-            'id' => $this->faker->numberBetween(1, 200),
-            'currency' => $userCurrency,
-        ];
-        $input['request'] = [
-            'payment_id' => $paymentId,
-            'order_id' => $invoiceId,
-            'payment_status' => 'refunded',
-            'price_amount' => $this->faker->numberBetween(100, 200),
-            'price_currency' => $userCurrency,
-            'pay_amount' => $this->faker->numberBetween(1, 5),
-            'pay_currency' => $needPayIn,
-        ];
-        $input['callback'] = $this->faker->url;
-        $input['payment'] = [
-            'invoice_id' => $invoiceId,
-        ];
-
-        $request = $input['request'];
-        ksort($request);
-        $signature = Signature::makeBySha512(json_encode($request), $input['params']['ipn']);
-        $input['headers'] = [
-            'x-nowpayments-sig' => [$signature],
-        ];
-
-        $response = $this->json(Request::METHOD_POST, route('webHookDeposit'), $input);
-        $response
-            ->assertStatus(Response::HTTP_OK)
-            ->assertJsonPath('status', true)
-            ->assertJsonPath('data.payment_system_id', $this->input['params']['id'])
-            ->assertJsonPath('data.txid', $paymentId)
-            ->assertJsonPath('data.amount', $input['request']['price_amount'])
-            ->assertJsonPath('data.return', 'fail')
-            ->assertJsonPath('data.return', 'fail')
-            ->assertJsonPath('data.invoice_id', $invoiceId)
-            ->assertJsonStructure([
-                'status',
-                'data',
-            ]);
-    }
-
-    public function testWebHookError()
-    {
-        $needPayIn = 'TRX';
-        $userCurrency = 'USD';
-        $paymentId = $this->faker->numberBetween(1, 200);
-        $invoiceId = $this->faker->numberBetween(1, 200);
-
-        $input = $this->input;
-        $input['user'] = [
-            'id' => $this->faker->numberBetween(1, 200),
-            'currency' => $userCurrency,
-        ];
-        $input['request'] = [
-            'payment_id' => $paymentId,
-            'order_id' => $invoiceId,
-            'payment_status' => 'waiting',
-            'price_amount' => $this->faker->numberBetween(100, 200),
-            'price_currency' => $userCurrency,
-            'pay_amount' => $this->faker->numberBetween(1, 5),
-            'pay_currency' => $needPayIn,
-        ];
-        $input['callback'] = $this->faker->url;
-        $input['payment'] = [
-            'invoice_id' => $invoiceId,
-        ];
-
-        $request = $input['request'];
-        ksort($request);
-        $signature = Signature::makeBySha512(json_encode($request), $input['params']['ipn']);
-        $input['headers'] = [
-            'x-nowpayments-sig' => [$signature],
-        ];
-
-        $response = $this->json(Request::METHOD_POST, route('webHookDeposit'), $input);
-        $response
-            ->assertStatus(Response::HTTP_OK)
-            ->assertJsonPath('status', false)
             ->assertJsonStructure([
                 'status',
                 'data',

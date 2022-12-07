@@ -50,6 +50,15 @@ abstract class Withdrawal
         return $this->type;
     }
 
+    public function getAction($data)
+    {
+        if (isset($data['action'])) {
+            return $data['action'];
+        }
+
+        return null;
+    }
+
     public function webHookResponse($text, $status, $amount, $txid = null, $invoiceId = null, $userId = null)
     {
         $params = $this->request['params'];
