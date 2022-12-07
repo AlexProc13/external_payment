@@ -50,4 +50,3 @@ function isTimeOutException(Throwable $exception, $timeOut)
 
     return true;
 }
-
